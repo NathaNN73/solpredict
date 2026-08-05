@@ -12,6 +12,10 @@ data/*.csv
 data/*.json
 !data/.gitkeep
 
+# SDD / tool artifacts
+openspec/
+.atl/
+
 # Environment
 .venv/
 .env
