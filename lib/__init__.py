@@ -1,0 +1,1 @@
+"""SolPredict shared library package."""

@@ -1,0 +1,1 @@
+"""Alert engine subpackage: detector, confidence, and state."""
