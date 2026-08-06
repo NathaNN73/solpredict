@@ -12,6 +12,9 @@ data/*.csv
 data/*.json
 !data/.gitkeep
 
+# Tests (solo project)
+tests/
+
 # SDD / tool artifacts
 openspec/
 .atl/
