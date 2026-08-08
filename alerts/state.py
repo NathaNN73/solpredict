@@ -120,7 +120,7 @@ def evaluate_and_persist(path: Path = config.ALERTS_JSON) -> dict:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(existing, indent=2), encoding="utf-8")
 
-    logger.info("New %s alert persisted (confidence=%s, peak=%.4f day %d)",
-                signal["type"], conf, signal.get("predicted_peak", 0),
-                signal.get("peak_day", 0))
+    logger.info("New %s alert persisted (confidence=%s, trough=%.4f day %d)",
+                signal["type"], conf, signal.get("predicted_trough", 0),
+                signal.get("trough_day", 0))
     return signal
