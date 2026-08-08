@@ -230,7 +230,6 @@ def _refrescar():
         return
     backfill.backfill_if_needed()
     _load.clear()
-    st.rerun()
 
 
 # ---------------------------------------------------------------------------
