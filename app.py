@@ -154,19 +154,19 @@ with col_alert:
     alert = alert_state.get_current_alert()
     if alert["type"] == "BUY_SIGNAL":
         conf = alert.get("confidence", "NORMAL")
-        peak = alert.get("predicted_peak", 0)
-        day = alert.get("peak_day", 0)
+        trough = alert.get("predicted_trough", 0)
+        day = alert.get("trough_day", 0)
         if conf == "LOW":
             st.warning(
                 f"#### 🟡 Señal de compra (confianza baja)\n\n"
-                f"Pico estimado: **S/ {peak:.4f}** en el día {day}\n\n"
+                f"Mínimo estimado: **S/ {trough:.4f}** en el día {day}\n\n"
                 f"⚠️ Alta volatilidad — la predicción es menos confiable."
             )
         else:
             st.success(
                 f"#### 🟢 Señal de compra\n\n"
-                f"Pico estimado: **S/ {peak:.4f}** en el día {day}\n\n"
-                f"Ventana favorable detectada."
+                f"Mínimo estimado: **S/ {trough:.4f}** en el día {day}\n\n"
+                f"El dólar está bajando — ventana favorable detectada."
             )
     else:
         st.info("#### 🔵 Sin acción\n\nNo se detectó una ventana de compra favorable.")
