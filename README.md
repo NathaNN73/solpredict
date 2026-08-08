@@ -24,19 +24,6 @@ streamlit run app.py
 
 Click **Refresh Data** on first run to fetch rates from SUNAT and backfill 90 days of historical data.
 
-## How It Works
-
-```
-SUNAT API ──┐
-CDN API ────┼──▶ rates.csv ──▶ ARIMA/Prophet ──▶ 7-day forecast
-Backup API ─┘                                      │
-                                                   ▼
-                                            Alert Engine
-                                          (trend + volatility)
-                                                   │
-                                                   ▼
-                                          Streamlit Dashboard
-```
 
 ### Data Sources
 
@@ -81,30 +68,7 @@ All tunable parameters live in `config.py`:
 | `MAX_BACKFILL_DAYS` | 90 | Historical data window |
 | `RATE_MIN` / `RATE_MAX` | 2.0 / 5.0 | Validation bounds for fetched rates |
 
-## Architecture
 
-```
-solpredict/
-├── app.py                Streamlit dashboard entry point
-├── config.py             Thresholds, TTLs, API endpoints, data paths
-├── requirements.txt      Python dependencies
-├── data/                 Runtime CSV/JSON (gitignored)
-├── data_collection/      API fetching + CSV storage + backfill
-│   ├── fetcher.py        Multi-source fallback chain
-│   ├── storage.py        CSV append with duplicate detection
-│   └── backfill.py       Gap detection + historical fill
-├── forecasting/          ML models + training + cache
-│   ├── models.py         ARIMA + Prophet wrappers
-│   ├── trainer.py        Holdout MAPE + forecast generation
-│   └── cache.py          12h TTL cache
-├── alerts/               Signal detection + confidence + persistence
-│   ├── detector.py       Trend-based buy signal evaluation
-│   ├── confidence.py     Volatility-adjusted confidence
-│   └── state.py          Alert pipeline + 24h dedup
-├── lib/
-│   └── validators.py     Rate range validation (2.0–5.0)
-└── tests/                Test suite (gitignored)
-```
 
 ## API Reliability
 
