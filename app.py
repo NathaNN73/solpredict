@@ -14,170 +14,104 @@ from data_collection import backfill, storage
 from data_collection.fetcher import FetchError, fetch_current_rate
 
 # ---------------------------------------------------------------------------
-st.set_page_config(page_title="SolPredict", page_icon="📈", layout="wide")
+st.set_page_config(page_title="SolPredict", page_icon="📈", layout="wide",
+                   initial_sidebar_state="collapsed")
 
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+    .stApp { background: #0f1117; }
 
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-    }
-
-    /* Fondo general */
-    .stApp {
-        background: #0f1117;
-    }
-
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background: #161822;
-        border-right: 1px solid #1e2030;
-    }
-    section[data-testid="stSidebar"] .stMarkdown,
-    section[data-testid="stSidebar"] label,
-    section[data-testid="stSidebar"] .stCaption {
-        color: #c4c8d8 !important;
-    }
+    /* Ocultar sidebar completamente */
+    section[data-testid="stSidebar"] { display: none; }
 
     /* Header */
-    .main-header h1 {
+    .header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+    .header-row h1 {
         font-size: 1.5rem;
         font-weight: 600;
         color: #e4e6f0;
         letter-spacing: -0.02em;
-        margin-bottom: 0;
+        margin: 0;
     }
+    .header-config {
+        font-size: 0.68rem;
+        color: #4b5068;
+    }
+    .header-config span { margin-left: 1rem; }
 
     /* Cards */
-    .card {
+    .card-rate {
         background: #161822;
         border: 1px solid #1e2030;
         border-radius: 10px;
         padding: 1.25rem 1.5rem;
     }
     .card-rate .label {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #6b708a;
-        margin-bottom: 0.35rem;
+        font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
+        color: #6b708a; margin-bottom: 0.35rem;
     }
     .card-rate .value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #f0f0f5;
-        letter-spacing: -0.02em;
-        line-height: 1.1;
+        font-size: 2rem; font-weight: 700; color: #f0f0f5;
+        letter-spacing: -0.02em; line-height: 1.1;
     }
     .card-rate .meta {
-        font-size: 0.7rem;
-        color: #4b5068;
-        margin-top: 0.4rem;
+        font-size: 0.7rem; color: #4b5068; margin-top: 0.4rem;
     }
 
     /* Señales */
     .signal {
-        border-radius: 10px;
-        padding: 1.25rem 1.5rem;
-        border: 1px solid #1e2030;
+        border-radius: 10px; padding: 1.25rem 1.5rem; border: 1px solid #1e2030;
     }
-    .signal-buy {
-        background: #0d2818;
-        border-color: #1a4d2e;
-    }
-    .signal-buy .sig-title { color: #4ade80; }
-    .signal-buy .sig-body  { color: #86efac; }
-
-    .signal-warn {
-        background: #2d1f0d;
-        border-color: #5c3d0e;
-    }
+    .signal-buy  { background: #0d2818; border-color: #1a4d2e; }
+    .signal-buy  .sig-title { color: #4ade80; }
+    .signal-buy  .sig-body  { color: #86efac; }
+    .signal-warn { background: #2d1f0d; border-color: #5c3d0e; }
     .signal-warn .sig-title { color: #fbbf24; }
     .signal-warn .sig-body  { color: #fde68a; }
-
-    .signal-none {
-        background: #161822;
-        border-color: #1e2030;
-    }
+    .signal-none { background: #161822; border-color: #1e2030; }
     .signal-none .sig-title { color: #6b708a; }
     .signal-none .sig-body  { color: #4b5068; }
-
     .sig-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem; }
     .sig-body  { font-size: 0.82rem; line-height: 1.5; }
 
     /* Métricas */
     div[data-testid="stMetric"] {
-        background: #161822;
-        border: 1px solid #1e2030;
-        border-radius: 10px;
-        padding: 0.85rem 1rem;
+        background: #161822; border: 1px solid #1e2030;
+        border-radius: 10px; padding: 0.85rem 1rem;
     }
     div[data-testid="stMetric"] label {
-        color: #6b708a !important;
-        font-size: 0.7rem !important;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
+        color: #6b708a !important; font-size: 0.7rem !important;
+        text-transform: uppercase; letter-spacing: 0.06em;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        color: #e4e6f0 !important;
-        font-size: 1.1rem !important;
-        font-weight: 600;
+        color: #e4e6f0 !important; font-size: 1.1rem !important; font-weight: 600;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricDelta"] {
-        font-size: 0.72rem;
-        color: #4b5068 !important;
+        font-size: 0.72rem; color: #4b5068 !important;
     }
 
     /* Botón */
     div[data-testid="stButton"] button {
-        background: #2563eb;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 500;
-        font-size: 0.82rem;
-        padding: 0.4rem 1rem;
+        background: #2563eb; color: white; border: none; border-radius: 8px;
+        font-weight: 500; font-size: 0.82rem; padding: 0.4rem 1rem;
         transition: background 0.15s;
     }
-    div[data-testid="stButton"] button:hover {
-        background: #3b82f6;
-    }
+    div[data-testid="stButton"] button:hover { background: #3b82f6; }
 
-    /* Espaciado general */
-    .block-container {
-        padding-top: 1.5rem;
-    }
-
-    /* Ocultar basura de Streamlit */
-    #MainMenu, footer, header[data-testid="stHeader"] {
-        display: none;
-    }
+    .block-container { padding-top: 1.5rem; }
+    #MainMenu, footer, header[data-testid="stHeader"] { display: none; }
     .st-emotion-cache-1dp5vir { display: none; }
-
-    /* Botón de colapsar sidebar — que nunca desaparezca */
-    [data-testid="stSidebarCollapseButton"],
-    button[kind="headerNoPadding"],
-    button[aria-label="Close sidebar"],
-    .st-emotion-cache-1aplgmp {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        z-index: 9999 !important;
-    }
-
-    /* Footer */
-    .footer {
-        text-align: center;
-        color: #2e3247;
-        font-size: 0.7rem;
-        padding-top: 3rem;
-    }
+    .footer { text-align: center; color: #2e3247; font-size: 0.7rem; padding-top: 3rem; }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------------------------
-# Helpers
 # ---------------------------------------------------------------------------
 MESES = ["ene", "feb", "mar", "abr", "may", "jun",
          "jul", "ago", "sep", "oct", "nov", "dic"]
@@ -226,8 +160,6 @@ def _vol_metrics(df: pd.DataFrame) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Pipeline
-# ---------------------------------------------------------------------------
 @st.cache_data(ttl=3600)
 def _load():
     return storage.read_rates()
@@ -246,34 +178,41 @@ def _refrescar():
 
 
 # ---------------------------------------------------------------------------
-# Sidebar
+# Header con botón y configuración
 # ---------------------------------------------------------------------------
-with st.sidebar:
-    st.button("Actualizar datos", on_click=_refrescar, use_container_width=True,
-              type="primary")
-    st.divider()
-    st.caption(f"Umbral de señal  {config.BUY_SIGNAL_THRESHOLD:.1%}")
-    st.caption(f"Volatilidad       {config.VOLATILITY_MULTIPLIER:.0f}x")
-    st.caption(f"Caché forecast   {config.FORECAST_CACHE_TTL_HOURS}h")
-    st.caption(f"Anti-spam         {config.ALERT_DEDUP_HOURS}h")
+st.markdown(f"""
+<div class="header-row">
+    <div>
+        <h1>SolPredict</h1>
+        <div style="font-size:0.78rem;color:#6b708a;margin-top:0.25rem;">
+            USD/PEN · proyección a 7 días · señales de compra
+        </div>
+    </div>
+    <div style="text-align:right;">
+""", unsafe_allow_html=True)
 
-# ---------------------------------------------------------------------------
-# Header
-# ---------------------------------------------------------------------------
-st.markdown('<div class="main-header"><h1>SolPredict</h1></div>', unsafe_allow_html=True)
-st.caption("USD/PEN · proyección a 7 días · señales de compra")
+col_btn, _ = st.columns([1, 3])
+with col_btn:
+    st.button("Actualizar", on_click=_refrescar, type="primary", use_container_width=True)
 
-# ---------------------------------------------------------------------------
-# Datos
+st.markdown(f"""
+        <div class="header-config">
+            <span>Umbral {config.BUY_SIGNAL_THRESHOLD:.1%}</span>
+            <span>Volatilidad {config.VOLATILITY_MULTIPLIER:.0f}x</span>
+            <span>Caché {config.FORECAST_CACHE_TTL_HOURS}h</span>
+            <span>Anti-spam {config.ALERT_DEDUP_HOURS}h</span>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 # ---------------------------------------------------------------------------
 df = _load()
 
 if df.empty:
-    st.info("Todavía no hay datos. Actualizá desde la barra lateral para empezar.")
+    st.info("Todavía no hay datos. Hacé clic en **Actualizar** para empezar.")
     st.stop()
 
-# ---------------------------------------------------------------------------
-# Tasa + Señal
 # ---------------------------------------------------------------------------
 latest = df.iloc[-1]
 current_rate = float(latest["rate"])
@@ -285,7 +224,7 @@ a, b = st.columns([1, 1])
 
 with a:
     st.markdown(f"""
-    <div class="card card-rate">
+    <div class="card-rate">
         <div class="label">{source.upper()}</div>
         <div class="value">S/ {current_rate:.4f}</div>
         <div class="meta">{_fmt_ts(fetched)}</div>
@@ -298,26 +237,22 @@ with b:
         t = alert.get("predicted_trough", 0)
         d = alert.get("trough_day", 0)
         if conf == "LOW":
-            cls = "signal signal-warn"
-            title = "Señal de compra · Confianza baja"
+            cls, title = "signal signal-warn", "Señal de compra · Confianza baja"
             body = (f"El modelo proyecta un mínimo de <b>S/ {t:.4f}</b> en el día {d}.<br>"
                     f"La volatilidad está elevada — precaución.")
         else:
-            cls = "signal signal-buy"
-            title = "Señal de compra"
+            cls, title = "signal signal-buy", "Señal de compra"
             body = (f"El modelo proyecta un mínimo de <b>S/ {t:.4f}</b> en el día {d}.<br>"
                     f"El dólar está bajando — ventana favorable.")
         st.markdown(f'<div class="{cls}"><div class="sig-title">{title}</div><div class="sig-body">{body}</div></div>', unsafe_allow_html=True)
     else:
-        st.markdown(f"""
+        st.markdown("""
         <div class="signal signal-none">
             <div class="sig-title">Sin señales activas</div>
             <div class="sig-body">No se detecta una ventana clara de compra en este momento.</div>
         </div>
         """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------------------------
-# Métricas
 # ---------------------------------------------------------------------------
 st.markdown("<br>", unsafe_allow_html=True)
 vol = _vol_metrics(df)
@@ -333,14 +268,11 @@ elif vol["color"] == "orange":
     st.caption("⚠️ Volatilidad elevada — conviene monitorear de cerca.")
 
 # ---------------------------------------------------------------------------
-# Gráfico
-# ---------------------------------------------------------------------------
 st.markdown("<br>", unsafe_allow_html=True)
 st.subheader("Histórico y proyección")
 
 rates = df.set_index("date")["rate"].astype(float)
 fig = go.Figure()
-
 fig.add_trace(go.Scatter(
     x=rates.index, y=rates.values, mode="lines", name="Histórico",
     line=dict(color="#60a5fa", width=1.8),
@@ -356,43 +288,35 @@ try:
         fv = [p["predicted"] for p in preds]
         l80, u80 = [p["lower_80"] for p in preds], [p["upper_80"] for p in preds]
         l95, u95 = [p["lower_95"] for p in preds], [p["upper_95"] for p in preds]
-
         fig.add_trace(go.Scatter(
             x=fd + fd[::-1], y=u95 + l95[::-1], fill="toself",
             fillcolor="rgba(96,165,250,0.06)", line=dict(width=0),
-            name="95%", hoverinfo="skip",
-        ))
+            name="95%", hoverinfo="skip"))
         fig.add_trace(go.Scatter(
             x=fd + fd[::-1], y=u80 + l80[::-1], fill="toself",
             fillcolor="rgba(96,165,250,0.12)", line=dict(width=0),
-            name="80%", hoverinfo="skip",
-        ))
+            name="80%", hoverinfo="skip"))
         fig.add_trace(go.Scatter(
             x=fd, y=fv, mode="lines+markers",
             name=f"Proyección ({fc.get('model','?')})",
             line=dict(color="#fbbf24", width=1.8, dash="dash"),
             marker=dict(size=4, color="#fbbf24"),
-            hovertemplate="%{x|%d %b %Y}<br>S/ %{y:.4f}<extra></extra>",
-        ))
+            hovertemplate="%{x|%d %b %Y}<br>S/ %{y:.4f}<extra></extra>"))
 except (ValueError, ImportError):
     pass
 
 fig.update_layout(
-    xaxis_title=None, yaxis_title=None,
-    hovermode="x unified",
+    xaxis_title=None, yaxis_title=None, hovermode="x unified",
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                 font=dict(size=10, color="#6b708a")),
     margin=dict(l=0, r=0, t=10, b=0), height=380,
     plot_bgcolor="#0f1117", paper_bgcolor="#0f1117",
-    font=dict(color="#8b8fa3", size=10),
-)
+    font=dict(color="#8b8fa3", size=10))
 fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="#1a1d2e",
                  zeroline=False, showline=True, linecolor="#1e2030")
 fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor="#1a1d2e",
-                 zeroline=False, showline=True, linecolor="#1e2030",
-                 tickformat=".2f")
+                 zeroline=False, showline=True, linecolor="#1e2030", tickformat=".2f")
 st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
-# ---------------------------------------------------------------------------
 st.markdown("""<div class="footer">SolPredict · SUNAT · CDN · ExchangeRate-API</div>""",
             unsafe_allow_html=True)
