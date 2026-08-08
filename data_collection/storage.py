@@ -12,12 +12,15 @@ data-collection spec. Reads return a :class:`pandas.DataFrame` ordered by date.
 from __future__ import annotations
 
 import csv
+import logging
 from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 
 import config
+
+logger = logging.getLogger(__name__)
 
 COLUMNS = ["date", "rate", "source", "fetched_at"]
 
@@ -77,7 +80,12 @@ def read_rates(days: int | None = None, path: Path = config.RATES_CSV) -> pd.Dat
     if not path.exists() or path.stat().st_size == 0:
         return pd.DataFrame(columns=COLUMNS)
 
-    df = pd.read_csv(path, dtype={"source": str}, parse_dates=["date"])
+    try:
+        df = pd.read_csv(path, dtype={"source": str}, parse_dates=["date"])
+    except (pd.errors.ParserError, ValueError) as exc:
+        logger.warning("Corrupt or unparseable CSV at %s (%s); treating as empty", path, exc)
+        return pd.DataFrame(columns=COLUMNS)
+
     df = df.sort_values("date").reset_index(drop=True)
 
     if days is None:
