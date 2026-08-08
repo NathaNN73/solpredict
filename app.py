@@ -34,8 +34,10 @@ st.markdown("""
         background: #161822;
         border-right: 1px solid #1e2030;
     }
-    section[data-testid="stSidebar"] * {
-        color: #8b8fa3 !important;
+    section[data-testid="stSidebar"] .stMarkdown,
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] .stCaption {
+        color: #c4c8d8 !important;
     }
 
     /* Header */
@@ -152,6 +154,12 @@ st.markdown("""
         display: none;
     }
     .st-emotion-cache-1dp5vir { display: none; }
+
+    /* Flecha de sidebar siempre visible */
+    button[data-testid="stSidebarCollapseButton"] {
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 
     /* Footer */
     .footer {
