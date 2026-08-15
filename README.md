@@ -45,9 +45,11 @@ All sources are tried in order. If one fails, the next is used automatically.
 
 ### Smart Alerts
 
+USD/PEN is quoted as soles per dollar, so a **lower** rate means dollars are **cheaper** — the ideal time to buy.
+
 A **Buy Signal** fires when both conditions are met:
-1. The forecast predicts at least a **1.5% increase** within 7 days
-2. The predicted trend is **monotonically increasing for 3+ consecutive days**
+1. The forecast predicts at least a **1.5% decrease** within 7 days
+2. The predicted trend is **monotonically decreasing for 3+ consecutive days**
 
 Confidence is adjusted by volatility:
 - **Normal**: market is stable, forecast is reliable
@@ -61,7 +63,7 @@ All tunable parameters live in `config.py`:
 
 | Parameter | Default | Description |
 |---|---|---|
-| `BUY_SIGNAL_THRESHOLD` | 1.5% | Minimum predicted increase to trigger an alert |
+| `BUY_SIGNAL_THRESHOLD` | 1.5% | Minimum predicted decrease to trigger an alert |
 | `VOLATILITY_MULTIPLIER` | 2.0× | 14d volatility must exceed this multiple of 30d avg to downgrade confidence |
 | `FORECAST_CACHE_TTL_HOURS` | 12h | How long a forecast is considered fresh |
 | `ALERT_DEDUP_HOURS` | 24h | Minimum time between alerts of the same type |

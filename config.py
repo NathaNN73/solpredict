@@ -27,7 +27,7 @@ CDN_HISTORICAL_TEMPLATE = (
 )
 
 # --- Alerting thresholds ----------------------------------------------------
-BUY_SIGNAL_THRESHOLD = 0.015  # 1.5% predicted increase triggers a BUY signal
+BUY_SIGNAL_THRESHOLD = 0.015  # 1.5% predicted decrease triggers a BUY signal
 VOLATILITY_MULTIPLIER = 2.0   # 14d std must exceed 2x the 30d avg std => LOW confidence
 
 # --- Cache and dedup TTLs --------------------------------------------------

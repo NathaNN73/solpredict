@@ -1,0 +1,82 @@
+- generic [ref=f2e2]:
+  - generic [ref=f2e7]:
+    - button "keyboard_double_arrow_left" [ref=f2e9] [cursor=pointer]
+    - generic [ref=f2e12]:
+      - button "Actualizar datos" [ref=f2e15] [cursor=pointer]:
+        - generic:
+          - generic:
+            - generic:
+              - paragraph: Actualizar datos
+      - separator [ref=f2e20]
+      - paragraph [ref=f2e25]: Umbral de señal 1.5%
+      - paragraph [ref=f2e30]: Volatilidad 2x
+      - paragraph [ref=f2e35]: Caché forecast 12h
+      - paragraph [ref=f2e40]: Anti-spam 24h
+  - generic [ref=f2e43]:
+    - heading "SolPredict" [level=1] [ref=f2e50]:
+      - text: SolPredict
+      - generic [ref=f2e51]:
+        - link "Link to heading":
+          - /url: "#sol-predict"
+    - paragraph [ref=f2e56]: USD/PEN · proyección a 7 días · señales de compra
+    - generic [ref=f2e58]:
+      - generic [ref=f2e65]:
+        - generic [ref=f2e66]: SUNAT
+        - generic [ref=f2e67]: S/ 3.3910
+        - generic [ref=f2e68]: 8 ago 2026, 01:12
+      - generic [ref=f2e75]:
+        - generic [ref=f2e76]: Sin señales activas
+        - generic [ref=f2e77]: No se detecta una ventana clara de compra en este momento.
+    - generic [ref=f2e83]:
+      - generic [ref=f2e88]:
+        - paragraph [ref=f2e92]: Volatilidad 14d
+        - paragraph [ref=f2e95]: "0.0071"
+        - paragraph [ref=f2e102]: Media 30d 0.0070
+      - generic [ref=f2e107]:
+        - paragraph [ref=f2e111]: Máximo 90d
+        - paragraph [ref=f2e114]: S/ 3.4714
+      - generic [ref=f2e119]:
+        - paragraph [ref=f2e123]: Mínimo 90d
+        - paragraph [ref=f2e126]: S/ 3.3823
+      - generic [ref=f2e131]:
+        - paragraph [ref=f2e135]: Observaciones
+        - paragraph [ref=f2e138]: "90"
+    - paragraph [ref=f2e143]: ⚠️ Volatilidad elevada — conviene monitorear de cerca.
+    - heading "Histórico y proyección" [level=3] [ref=f2e152]:
+      - text: Histórico y proyección
+      - generic [ref=f2e153]:
+        - link "Link to heading":
+          - /url: "#historico-y-proyeccion"
+    - generic [ref=f2e159]:
+      - img:
+        - generic:
+          - generic:
+            - generic:
+              - generic: May 172026
+              - generic: May 31
+              - generic: Jun 14
+              - generic: Jun 28
+              - generic: Jul 12
+              - generic: Jul 26
+            - generic:
+              - generic: "3.40"
+              - generic: "3.45"
+              - generic: "3.50"
+              - generic: "3.55"
+              - generic: "3.60"
+              - generic: "3.65"
+      - img:
+        - generic [ref=f2e176]:
+          - generic [ref=f2e177]:
+            - generic [ref=f2e178]: Histórico
+            - generic [ref=f2e179] [cursor=pointer]
+          - generic [ref=f2e180]:
+            - generic [ref=f2e181]: 95%
+            - generic [ref=f2e188] [cursor=pointer]
+          - generic [ref=f2e189]:
+            - generic [ref=f2e190]: 80%
+            - generic [ref=f2e197] [cursor=pointer]
+          - generic [ref=f2e198]:
+            - generic [ref=f2e199]: Proyección (ARIMA)
+            - generic [ref=f2e204] [cursor=pointer]
+    - generic [ref=f2e205]: SolPredict · SUNAT · CDN · ExchangeRate-API
