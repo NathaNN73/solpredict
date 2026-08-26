@@ -17,7 +17,6 @@ import pandas as pd
 import config
 from alerts import confidence, detector
 from data_collection import storage
-from forecasting import cache as forecast_cache
 
 logger = logging.getLogger(__name__)
 
@@ -72,11 +71,11 @@ def get_current_alert(path: Path = config.ALERTS_JSON) -> dict:
 
 
 def evaluate_and_persist(path: Path = config.ALERTS_JSON) -> dict:
-    """Run the full alert pipeline: fetch rates, evaluate signal, persist.
+    """Run the full alert pipeline: read rates, detect signal, persist.
 
     Steps:
-      1. Read historical rates and latest forecast.
-      2. Detect buy signal via :func:`detector.evaluate_signal`.
+      1. Read historical rates from storage.
+      2. Detect buy signal from REAL trend via :func:`detector.evaluate_signal`.
       3. Compute confidence via :func:`confidence.compute_confidence`.
       4. Persist the alert (unless it is a duplicate).
       5. Return the alert dict for the dashboard.
@@ -86,25 +85,15 @@ def evaluate_and_persist(path: Path = config.ALERTS_JSON) -> dict:
     if df.empty:
         return {"type": "NO_ACTION"}
 
-    current_rate = float(df.iloc[-1]["rate"])
+    rates = df.set_index("date")["rate"].astype(float)
 
-    # Build a forecast from the trainer (already cached if fresh).
-    try:
-        forecast = forecast_cache.get_forecast()
-    except ValueError:
-        # No data for forecasting yet.
-        return {"type": "NO_ACTION"}
-
-    predictions = forecast.get("predictions", [])
-
-    # ---- Evaluate -----------------------------------------------------------
-    signal = detector.evaluate_signal(predictions, current_rate)
+    # ---- Evaluate signal from real trend -----------------------------------
+    signal = detector.evaluate_signal(rates)
 
     if signal["type"] == "NO_ACTION":
         return signal
 
     # ---- Confidence ---------------------------------------------------------
-    rates = df.set_index("date")["rate"].astype(float)
     conf = confidence.compute_confidence(rates)
     signal["confidence"] = conf
     signal["generated_at"] = pd.Timestamp.now().isoformat(timespec="seconds")
@@ -120,7 +109,6 @@ def evaluate_and_persist(path: Path = config.ALERTS_JSON) -> dict:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(existing, indent=2), encoding="utf-8")
 
-    logger.info("New %s alert persisted (confidence=%s, trough=%.4f day %d)",
-                signal["type"], conf, signal.get("predicted_trough", 0),
-                signal.get("trough_day", 0))
+    logger.info("New %s alert persisted (confidence=%s, momentum=%.2f%%)",
+                signal["type"], conf, signal.get("momentum_pct", 0.0))
     return signal
