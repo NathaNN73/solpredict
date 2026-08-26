@@ -33,7 +33,7 @@ CDN_HISTORICAL_TEMPLATE = (
 MA_SHORT_DAYS = 7            # short moving average window
 MA_LONG_DAYS = 30            # long moving average window
 MOMENTUM_WINDOW_DAYS = 14    # how far back to measure the drop
-MOMENTUM_THRESHOLD = 0.015   # 1.5% drop over the window triggers the signal
+MOMENTUM_THRESHOLD = 0.01    # 1.0% drop over the window triggers the signal
 VOLATILITY_MULTIPLIER = 2.0  # 14d std must exceed 2x the 30d avg std => LOW confidence
 
 # --- Cache and dedup TTLs --------------------------------------------------
