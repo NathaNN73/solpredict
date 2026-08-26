@@ -1,4 +1,4 @@
-"""SolPredict — Tipo de cambio USD/PEN con predicciones ML."""
+"""SolPredict — Tipo de cambio USD/PEN y señales de compra."""
 
 from __future__ import annotations
 
@@ -163,23 +163,10 @@ if vol["color"] == "red": st.caption("⚠️ Volatilidad alta — las proyeccion
 elif vol["color"] == "orange": st.caption("⚠️ Volatilidad elevada — conviene monitorear de cerca.")
 
 st.markdown("<br>", unsafe_allow_html=True)
-st.subheader("Histórico y proyección")
+st.subheader("Histórico")
 rates = df.set_index("date")["rate"].astype(float)
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=rates.index, y=rates.values, mode="lines", name="Histórico", line=dict(color="#60a5fa", width=1.8), hovertemplate="%{x|%d %b %Y}<br>S/ %{y:.4f}<extra></extra>"))
-try:
-    from forecasting import cache as fc_cache
-    fc = fc_cache.get_forecast()
-    preds = fc.get("predictions",[])
-    if preds:
-        fd = [pd.Timestamp(p["date"]) for p in preds]
-        fv = [p["predicted"] for p in preds]
-        l80,u80 = [p["lower_80"] for p in preds], [p["upper_80"] for p in preds]
-        l95,u95 = [p["lower_95"] for p in preds], [p["upper_95"] for p in preds]
-        fig.add_trace(go.Scatter(x=fd+fd[::-1], y=u95+l95[::-1], fill="toself", fillcolor="rgba(96,165,250,0.06)", line=dict(width=0), name="95%", hoverinfo="skip"))
-        fig.add_trace(go.Scatter(x=fd+fd[::-1], y=u80+l80[::-1], fill="toself", fillcolor="rgba(96,165,250,0.12)", line=dict(width=0), name="80%", hoverinfo="skip"))
-        fig.add_trace(go.Scatter(x=fd, y=fv, mode="lines+markers", name=f"Proyección ({fc.get('model','?')})", line=dict(color="#fbbf24", width=1.8, dash="dash"), marker=dict(size=4,color="#fbbf24"), hovertemplate="%{x|%d %b %Y}<br>S/ %{y:.4f}<extra></extra>"))
-except (ValueError, ImportError): pass
 fig.update_layout(xaxis_title=None, yaxis_title=None, hovermode="x unified", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=10,color="#6b708a")), margin=dict(l=0,r=0,t=10,b=0), height=380, plot_bgcolor="#0f1117", paper_bgcolor="#0f1117", font=dict(color="#8b8fa3", size=10))
 fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="#1a1d2e", zeroline=False, showline=True, linecolor="#1e2030")
 fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor="#1a1d2e", zeroline=False, showline=True, linecolor="#1e2030", tickformat=".2f")
