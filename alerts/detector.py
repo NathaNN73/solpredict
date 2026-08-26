@@ -1,67 +1,64 @@
-"""Trend-based buy signal detector.
+"""Trend-based buy signal detector — based on REAL observed rates.
 
-Evaluates forecast predictions to find favorable moments to buy dollars.
-Since the pair is USD/PEN (soles per dólar), a LOWER rate means dollars
-are cheaper — the ideal time to buy.
+Detects favorable moments to buy dollars from the actual USD/PEN history,
+not from ML forecast (which is unreliable for short-horizon forex).
 
-A BUY_SIGNAL fires when the forecast predicts a significant DECREASE.
+The pair is USD/PEN (soles per dollar): a LOWER rate means dollars are
+cheaper — the ideal time to buy.
+
+A BUY_SIGNAL fires when BOTH hold:
+  1. The short moving average (MA_SHORT_DAYS) sits below the long moving
+     average (MA_LONG_DAYS) — the dollar is in a confirmed downtrend.
+  2. The rate dropped at least MOMENTUM_THRESHOLD over the last
+     MOMENTUM_WINDOW_DAYS — the move is large enough to matter.
 """
 
 from __future__ import annotations
 
+import pandas as pd
+
 import config
 
 
-def evaluate_signal(
-    predictions: list[dict],
-    current_rate: float,
-) -> dict:
-    """Evaluate forecast predictions and return an alert dict.
+def evaluate_signal(rates: pd.Series) -> dict:
+    """Evaluate real rate history and return an alert dict.
 
-    Conditions for a BUY_SIGNAL (both must be true):
-      1. At least one predicted rate is BELOW ``current_rate * (1 - threshold)``
-         where ``threshold`` is :data:`config.BUY_SIGNAL_THRESHOLD` (default 1.5%).
-         In other words: the dollar is predicted to drop at least 1.5%.
-      2. The predicted values are monotonically DECREASING for at least 3
-         consecutive days, confirming a downward trend.
+    ``rates`` is a pandas Series indexed by date with rate values (soles per
+    dollar), sorted ascending by date.
 
     Returns a dict with:
       - ``type``: ``"BUY_SIGNAL"`` or ``"NO_ACTION"``
-      - ``current_rate``: the rate the signal was evaluated against
-      - ``predicted_trough``: lowest predicted rate in the window (BUY_SIGNAL only)
-      - ``trough_day``: 1-based day index of the trough (BUY_SIGNAL only)
-      - ``generated_at``: omitted here; added by :mod:`alerts.state`.
+      - ``current_rate``: the latest observed rate
+      - ``momentum_pct``: percentage change over the momentum window
+        (negative = dollar dropping) — BUY_SIGNAL only
+      - ``ma_short`` / ``ma_long``: the moving averages — BUY_SIGNAL only
     """
-    if not predictions:
-        return {"type": "NO_ACTION", "current_rate": current_rate}
+    clean = rates.dropna()
 
-    # --- Condition 1: magnitude check — rate must DROP ≥ threshold -----------
-    target = current_rate * (1 - config.BUY_SIGNAL_THRESHOLD)
-    predicted_rates = [p["predicted"] for p in predictions]
-    trough_value = min(predicted_rates)
+    if len(clean) < config.MA_LONG_DAYS:
+        current = float(clean.iloc[-1]) if len(clean) else 0.0
+        return {"type": "NO_ACTION", "current_rate": current}
 
-    if trough_value > target:
-        return {"type": "NO_ACTION", "current_rate": current_rate}
+    current = float(clean.iloc[-1])
+    ma_short = float(clean.tail(config.MA_SHORT_DAYS).mean())
+    ma_long = float(clean.tail(config.MA_LONG_DAYS).mean())
 
-    # --- Condition 2: monotonic DECREASING run ≥ 3 days ----------------------
-    longest_run = 0
-    current_run = 1
-    for i in range(1, len(predicted_rates)):
-        if predicted_rates[i] < predicted_rates[i - 1]:
-            current_run += 1
-            longest_run = max(longest_run, current_run)
-        else:
-            current_run = 1
-    longest_run = max(longest_run, current_run)
+    reference = float(clean.iloc[-1 - config.MOMENTUM_WINDOW_DAYS])
+    momentum = (current - reference) / reference  # negative => dollar dropping
 
-    if longest_run < 3:
-        return {"type": "NO_ACTION", "current_rate": current_rate}
+    # Condition 1: short MA below long MA => confirmed downtrend.
+    downtrend = ma_short < ma_long
 
-    # Both conditions satisfied → BUY_SIGNAL (dollar is dropping).
-    trough_day = predicted_rates.index(trough_value) + 1  # 1-based
+    # Condition 2: the drop is large enough to matter.
+    dropped_enough = momentum <= -config.MOMENTUM_THRESHOLD
+
+    if not (downtrend and dropped_enough):
+        return {"type": "NO_ACTION", "current_rate": current}
+
     return {
         "type": "BUY_SIGNAL",
-        "current_rate": current_rate,
-        "predicted_trough": round(trough_value, 4),
-        "trough_day": trough_day,
+        "current_rate": round(current, 4),
+        "momentum_pct": round(momentum * 100, 2),
+        "ma_short": round(ma_short, 4),
+        "ma_long": round(ma_long, 4),
     }

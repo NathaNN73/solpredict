@@ -107,7 +107,7 @@ st.markdown(f"""
 <div class="header-row">
     <div>
         <h1>SolPredict</h1>
-        <div style="font-size:0.78rem;color:#6b708a;margin-top:0.25rem;">USD/PEN · proyección a 7 días · señales de compra</div>
+        <div style="font-size:0.78rem;color:#6b708a;margin-top:0.25rem;">USD/PEN · tendencia · señales de compra</div>
     </div>
     <div style="text-align:right;">
 """, unsafe_allow_html=True)
@@ -115,9 +115,8 @@ col_btn, _ = st.columns([1,3])
 with col_btn: st.button("Actualizar", on_click=_refrescar, type="primary", use_container_width=True)
 st.markdown(f"""
         <div class="header-config">
-            <span>Umbral {config.BUY_SIGNAL_THRESHOLD:.1%}</span>
-            <span>Volatilidad {config.VOLATILITY_MULTIPLIER:.0f}x</span>
-            <span>Caché {config.FORECAST_CACHE_TTL_HOURS}h</span>
+            <span>Momentum {config.MOMENTUM_THRESHOLD:.1%}/{config.MOMENTUM_WINDOW_DAYS}d</span>
+            <span>MA {config.MA_SHORT_DAYS}/{config.MA_LONG_DAYS}d</span>
             <span>Anti-spam {config.ALERT_DEDUP_HOURS}h</span>
         </div>
     </div>
@@ -133,6 +132,7 @@ latest = df.iloc[-1]
 current_rate = float(latest["rate"])
 source = latest.get("source","?")
 fetched = latest.get("fetched_at")
+alert_state.evaluate_and_persist()  # refresh signal from real trend (cheap, no ML)
 alert = alert_state.get_current_alert()
 
 a, b = st.columns([1,1])
@@ -141,13 +141,13 @@ with a:
 with b:
     if alert["type"] == "BUY_SIGNAL":
         conf = alert.get("confidence","NORMAL")
-        t, d = alert.get("predicted_trough",0), alert.get("trough_day",0)
+        mom = alert.get("momentum_pct", 0.0)
         if conf == "LOW":
             cls, title = "signal signal-warn", "Señal de compra · Confianza baja"
-            body = f"El modelo proyecta un mínimo de <b>S/ {t:.4f}</b> en el día {d}.<br>La volatilidad está elevada — precaución."
+            body = f"El dólar bajó <b>{mom:.1f}%</b> en {config.MOMENTUM_WINDOW_DAYS} días.<br>La volatilidad está elevada — precaución."
         else:
             cls, title = "signal signal-buy", "Señal de compra"
-            body = f"El modelo proyecta un mínimo de <b>S/ {t:.4f}</b> en el día {d}.<br>El dólar está bajando — ventana favorable."
+            body = f"El dólar bajó <b>{mom:.1f}%</b> en {config.MOMENTUM_WINDOW_DAYS} días.<br>Tendencia a la baja confirmada."
         st.markdown(f'<div class="{cls}"><div class="sig-title">{title}</div><div class="sig-body">{body}</div></div>', unsafe_allow_html=True)
     else:
         st.markdown("""<div class="signal signal-none"><div class="sig-title">Sin señales activas</div><div class="sig-body">No se detecta una ventana clara de compra en este momento.</div></div>""", unsafe_allow_html=True)
